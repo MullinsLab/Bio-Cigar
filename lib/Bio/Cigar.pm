@@ -92,9 +92,9 @@ spec:
 =cut
 
 our $CIGAR_REGEX = qr/^
-    (\d+H)?(\d+S)?
-    (?<OP>\d+[MIDNP=X])*
-    (\d+S)?(\d+H)?
+    (\d*H)?(\d*S)?
+    (?<OP>\d*[MIDNP=X])*
+    (\d*S)?(\d*H)?
 $/xa;
 
 has 'string',
@@ -106,13 +106,13 @@ has 'query_length',
     lazy    => 1,
     is      => 'ro',
     isa     => Int,
-    default => sub { sum($_[0]->string =~ /(\d+)[MIS=X]/ga) || 0 };
+    default => sub { sum(map { $_ || 1 } $_[0]->string =~ /(\d*)[MIS=X]/ga) || 0 };
 
 has 'reference_length',
     lazy    => 1,
     is      => 'ro',
     isa     => Int,
-    default => sub { sum($_[0]->string =~ /(\d+)[MDN=X]/ga) || 0 };
+    default => sub { sum(map { $_ || 1 } $_[0]->string =~ /(\d*)[MDN=X]/ga) || 0 };
 
 has 'ops',
     lazy    => 1,
@@ -133,9 +133,9 @@ sub _parse {
     my $self  = shift;
     my $cigar = $self->string;
     my @ops;
-    for my $op (grep defined, $cigar =~ /(\d+[MIDNSHP=X])/g) {
-        my ($len, $type) = split /(?<=\d)(?=\D)/a, $op, 2;
-        push @ops, [ $len, uc $type ];
+    for my $op (grep defined, $cigar =~ /(\d*[MIDNSHP=X])/g) {
+        my ($len, $type) = $op =~ /(\d*)(\D*)/a;
+        push @ops, [ $len || 1, uc $type ];
     }
     return \@ops;
 }

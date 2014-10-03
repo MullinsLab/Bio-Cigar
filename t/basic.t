@@ -32,6 +32,15 @@ use Bio::Cigar;
     }
 }
 
+# Optional length when 1
+{
+    my $cigar = Bio::Cigar->new("2MD");
+    is $cigar->string, "2MD";
+    is $cigar->query_length, 2;
+    is $cigar->reference_length, 3;
+    is_deeply $cigar->ops, [ [2, "M"], [1, "D"], ];
+}
+
 {
     #      1234 5678
     # REF: ATCG-ATCG
