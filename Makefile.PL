@@ -3,27 +3,33 @@
 use strict;
 use warnings;
 
-use 5.008005;
+use 5.014;
 
 use ExtUtils::MakeMaker 6.30;
 
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Blah blah blah",
+  "ABSTRACT" => "Parse CIGAR strings and translate coordinates to/from reference/query",
   "AUTHOR" => "Thomas Sibley <trsibley\@uw.edu>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
   "DISTNAME" => "Bio-Cigar",
   "EXE_FILES" => [],
-  "LICENSE" => "perl",
+  "LICENSE" => "gpl",
   "NAME" => "Bio::Cigar",
-  "PREREQ_PM" => {},
+  "PREREQ_PM" => {
+    "Carp" => 0,
+    "List::Util" => 0,
+    "Moo" => 0,
+    "Types::Standard" => 0,
+    "namespace::clean" => 0
+  },
   "TEST_REQUIRES" => {
     "Test::More" => "0.96"
   },
-  "VERSION" => "0.01",
+  "VERSION" => "1.00",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -31,7 +37,12 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
-  "Test::More" => "0.96"
+  "Carp" => 0,
+  "List::Util" => 0,
+  "Moo" => 0,
+  "Test::More" => "0.96",
+  "Types::Standard" => 0,
+  "namespace::clean" => 0
 );
 
 
