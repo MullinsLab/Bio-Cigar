@@ -16,7 +16,9 @@ Bio::Cigar - Parse CIGAR strings and translate coordinates to/from reference/que
 # DESCRIPTION
 
 Bio::Cigar is a small library to parse CIGAR strings ("Compact Idiosyncratic
-Gapped Alignment Report"), such as those used in the SAM file format.
+Gapped Alignment Report"), such as those used in the SAM file format.  CIGAR
+strings minimally describe the alignment of a query sequence to an (often
+longer) reference sequence.
 
 Parsing follows the [SAM v1 spec](http://samtools.github.io/hts-specs/SAMv1.pdf)
 for the `CIGAR` column.
@@ -30,16 +32,16 @@ All attributes are read-only.
 
 ## string
 
-The CIGAR string for this object.  Required on object creation.
+The CIGAR string for this object.
 
 ## reference\_length
 
-The length of the aligned portion of reference sequence describe by the CIGAR
-string.
+The length of the reference sequence segment aligned with the query sequence
+described by the CIGAR string.
 
 ## query\_length
 
-The length of the query sequence describe by the CIGAR string.
+The length of the query sequence described by the CIGAR string.
 
 ## ops
 
@@ -69,11 +71,13 @@ spec:
       For other types of alignments, the interpretation of N is not defined.
     • Sum of the lengths of the M/I/S/=/X operations shall equal the length of SEQ.
 
-# METHODS
+# CONSTRUCTOR
 
 ## new
 
-Takes a CIGAR string as a single argument and returns a new Bio::Cigar object.
+Takes a CIGAR string as the sole argument and returns a new Bio::Cigar object.
+
+# METHODS
 
 ## rpos\_to\_qpos
 
@@ -82,6 +86,8 @@ corresponding position (origin 1, base-numbered) on the query sequence.  Indels
 affect how the numbering maps from reference to query.
 
 In list context returns a tuple of `[query position, operation at position]`.
+Operation is a single-character string.  See the
+[table of CIGAR operations](#cigar-operations).
 
 If the reference position does not map to the query sequence (as with a
 deletion, for example), returns `undef` or `[undef, operation]`.
@@ -93,17 +99,23 @@ position (origin 1, base-numbered) on the reference sequence.  Indels affect
 how the numbering maps from query to reference.
 
 In list context returns a tuple of `[references position, operation at position]`.
+Operation is a single-character string.  See the
+[table of CIGAR operations](#cigar-operations).
 
 If the query position does not map to the reference sequence (as with an
 insertion, for example), returns `undef` or `[undef, operation]`.
 
 ## op\_at\_rpos
 
-Takes a reference position and returns the operation at that position.
+Takes a reference position and returns the operation at that position.  Simply
+a shortcut for calling ["rpos\_to\_qpos"](#rpos_to_qpos) in list context and discarding the
+first return value.
 
 ## op\_at\_qpos
 
-Takes a query position and returns the operation at that position.
+Takes a query position and returns the operation at that position.  Simply
+a shortcut for calling ["qpos\_to\_rpos"](#qpos_to_rpos) in list context and discarding the
+first return value.
 
 # AUTHOR
 
