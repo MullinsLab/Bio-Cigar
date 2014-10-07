@@ -25,8 +25,8 @@ Bio::Cigar - Parse CIGAR strings and translate coordinates to/from reference/que
 
 Bio::Cigar is a small library to parse CIGAR strings ("Compact Idiosyncratic
 Gapped Alignment Report"), such as those used in the SAM file format.  CIGAR
-strings minimally describe the alignment of a query sequence to an (often
-longer) reference sequence.
+strings are a run-length encoding which minimally describes the alignment of a
+query sequence to an (often longer) reference sequence.
 
 Parsing follows the L<SAM v1 spec|http://samtools.github.io/hts-specs/SAMv1.pdf>
 for the C<CIGAR> column.
