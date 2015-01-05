@@ -1,7 +1,7 @@
 requires 'perl', '5.014';
 
 requires 'Moo';
-requires 'Types::Standard';
+requires 'Types::Standard', '1.000005';
 requires 'List::Util';
 requires 'Carp';
 requires 'namespace::clean';
