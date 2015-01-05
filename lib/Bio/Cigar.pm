@@ -58,7 +58,7 @@ Lengths are integers, L<possible operations are below|/"CIGAR operations">.
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 use Moo;
 use Types::Standard qw< ArrayRef Tuple Int Enum StrMatch >;
