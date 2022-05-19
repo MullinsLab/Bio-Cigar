@@ -186,6 +186,12 @@ Takes a query position and returns the operation at that position.  Simply
 a shortcut for calling L</qpos_to_rpos> in list context and discarding the
 first return value.
 
+=head2 reversed
+
+Returns a new Bio::Cigar object with a CIGAR string that's the reverse of this
+one, i.e. the last operation becomes the first, the second-to-last the second,
+etc. until the first operation becomes the last.
+
 =cut
 
 # Consumption table based on
@@ -296,6 +302,11 @@ sub op_at_qpos {
     my $self = shift;
     my ($rpos, $type) = $self->qpos_to_rpos(@_);
     return $type;
+}
+
+sub reversed {
+    my $self = shift;
+    return Bio::Cigar->new(join "", map { join "", @$_ } reverse @{$self->ops});
 }
 
 =head1 AUTHOR

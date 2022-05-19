@@ -138,4 +138,11 @@ use Bio::Cigar;
     like $@, qr/qpos = 13 is < 1 or > query_length \(12\)/, "exception wording";
 }
 
+# Reversed
+{
+    my $cigar = Bio::Cigar->new("2S4M2I4M3H");
+    is $cigar->string, "2S4M2I4M3H", "string matches";
+    is $cigar->reversed->string, "3H4M2I4M2S", "string matches";
+}
+
 done_testing;
