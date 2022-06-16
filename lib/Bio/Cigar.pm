@@ -186,6 +186,12 @@ Takes a query position and returns the operation at that position.  Simply
 a shortcut for calling L</qpos_to_rpos> in list context and discarding the
 first return value.
 
+=head2 align
+
+Takes a query sequence and a reference sequence, and aligns them using gap
+characters (C<->) according to the CIGAR string. Returns an array ref storing
+the aligned sequences in order [query, ref].
+
 =cut
 
 # Consumption table based on
@@ -296,6 +302,57 @@ sub op_at_qpos {
     my $self = shift;
     my ($rpos, $type) = $self->qpos_to_rpos(@_);
     return $type;
+}
+
+sub align {
+    my ($self, $query, $ref) = @_;
+
+    ### Sanity check of input lengths.
+    # Of query ...
+    my $query_len = $self->query_length;
+    croak "Query was expected to have length $query_len, but has length ",
+          length($query), " instead"
+        unless $query_len == length($query);
+
+    # ... and reference.
+    my $ref_len = $self->reference_length;
+    croak "Reference was expected to have length $ref_len, but has length ",
+          length($query), " instead"
+        unless $ref_len == length($ref);
+
+    ### Iterate CIGAR ops and generate alignment chunks.
+    # TODO Maybe add special handling for soft clipping, which may be better
+    # represented by spaces.
+    my (@query_aln, @ref_aln);          # stores chunks of aligned sequences
+    my ($query_pos, $ref_pos) = (0, 0); # current position in sequences
+    foreach my $op ($self->ops) {
+        my ($op_len, $op_type) = @$op;
+        my ($consumes_query, $consumes_ref) = @{ $op_consumes{$op_type} };
+
+        # Get next chunk of respective sequence and update position. Insert
+        # gaps in the other sequence if necessary.
+        if ($consumes_query) {
+            push @query_aln, substr $query, $query_pos, $op_len;
+            $query_pos += $op_len;
+
+            unless ($consumes_ref) {
+                push @ref_aln, '-' x $op_len;
+            }
+        }
+        if ($consumes_ref) {
+            push @ref_aln, substr $ref, $ref_pos, $op_len;
+            $ref_pos += $op_len;
+
+            unless ($consumes_query) {
+                push @query_aln, '-' x $op_len;
+            }
+        }
+    }
+
+    # Join chunks and return aligned sequences.
+    my $query_aln = join '', @query_aln;
+    my $ref_aln   = join '',   @ref_aln;
+    return [$query_aln, $ref_aln];
 }
 
 =head1 AUTHOR
