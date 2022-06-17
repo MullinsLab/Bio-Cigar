@@ -27,7 +27,8 @@ my %WriteMakefileArgs = (
     "namespace::clean" => 0
   },
   "TEST_REQUIRES" => {
-    "Test::More" => "0.96"
+    "Test::More" => "0.96",
+    "Test::Exception" => "0.43",
   },
   "VERSION" => "1.01",
   "test" => {
