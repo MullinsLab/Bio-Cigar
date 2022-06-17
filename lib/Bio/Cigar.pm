@@ -70,7 +70,7 @@ use namespace::clean;
 
 The CIGAR operations are given in the following table, taken from the SAM v1
 spec:
-    
+
     Op  Description
     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     M   alignment match (can be a sequence match or mismatch)
@@ -304,6 +304,8 @@ sub op_at_qpos {
     return $type;
 }
 
+# Note: The match/mismatch operators (=/X) are currently not verified to be
+# correct for the given input sequences.
 sub align {
     my ($self, $query, $ref) = @_;
 
@@ -352,6 +354,7 @@ sub align {
     # Join chunks and return aligned sequences.
     my $query_aln = join '', @query_aln;
     my $ref_aln   = join '',   @ref_aln;
+
     return [$query_aln, $ref_aln];
 }
 
