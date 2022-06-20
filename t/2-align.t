@@ -9,15 +9,16 @@ use Test::Exception;
 my $query_seq = 'ATGCGGAAAATCGGC';
 my   $ref_seq = 'GGCGGGATGCAAA';
 my $cigar_string = '4S2=4IX3D4M3N2P10H';
-my $cigar = Bio::Cigar->new($cigar_string);
+my $cigar;
 
 # Test align method availablility.
 subtest 'Callable' => sub {
     plan tests => 2;
 
+    $cigar = Bio::Cigar->new($cigar_string);
     isa_ok $cigar, 'Bio::Cigar';
     can_ok $cigar, 'align';
-};
+} or BAIL_OUT('Cannot instantiate CIGAR string object or cannot align, stopping');
 
 # Test sanity checks.
 subtest 'Sanity checks' => sub {
@@ -34,8 +35,9 @@ subtest 'Sanity checks' => sub {
               'correct input lives';
 };
 
+# Test correctness of alignments.
 subtest 'Alignment' => sub {
-    plan tests => 2;
+    plan tests => 7;
 
     # Align sequences.
     my $aln = $cigar->align($query_seq, $ref_seq);
@@ -44,7 +46,13 @@ subtest 'Alignment' => sub {
     my ($query_aln, $ref_aln) = @$aln;
 
     # Verify results.
-    ...;
+    is $query_aln =~ s/[^ATGCU]//gr, $query_seq, 'removing gaps yields query';
+    is   $ref_aln =~ s/[^ATGCU]//gr,   $ref_seq, 'removing gaps yields reference';
+    cmp_ok length $query_aln, '==', length $ref_aln,
+        'aligned sequences have equal length';
+
+    is $query_aln, 'ATGCGGAAAAT---CGGC---', 'query correctly aligned';
+    is   $ref_aln, '----GG----CGGGATGCAAA', 'reference correctly aligned';
 };
 
 
