@@ -327,7 +327,7 @@ sub align {
     # represented by spaces.
     my (@query_aln, @ref_aln);          # stores chunks of aligned sequences
     my ($query_pos, $ref_pos) = (0, 0); # current position in sequences
-    foreach my $op ($self->ops) {
+    foreach my $op (@{$self->ops}) {
         my ($op_len, $op_type) = @$op;
         my ($consumes_query, $consumes_ref) = @{ $op_consumes{$op_type} };
 
