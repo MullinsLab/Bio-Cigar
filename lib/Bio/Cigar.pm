@@ -17,7 +17,7 @@ Bio::Cigar - Parse CIGAR strings and translate coordinates to/from reference/que
     my $cigar = Bio::Cigar->new("2M1D1M1I4M");
     say "Query length is ", $cigar->query_length;
     say "Reference length is ", $cigar->reference_length;
-    
+
     my ($qpos, $op) = $cigar->rpos_to_qpos(3);
     say "Alignment operation at reference position 3 is $op";
 
@@ -316,11 +316,14 @@ sub align {
           length($query), " instead"
         unless $query_len == length($query);
 
-    # ... and reference.
-    my $ref_len = $self->reference_length;
-    croak "Reference was expected to have length $ref_len, but has length ",
-          length($query), " instead"
-        unless $ref_len == length($ref);
+    # # ... and reference. Note: The reference length will likely not match
+    # # because it is often longer than the query and the CIGAR string doesn't
+    # # account for that. The best matching thing would be N, but it seems to
+    # be mainly used for introns.
+    # my $ref_len = $self->reference_length;
+    # carp "Reference was expected to have length $ref_len, but has length ",
+    #      length($query), " instead"
+    #     unless $ref_len == length($ref);
 
     ### Iterate CIGAR ops and generate alignment chunks.
     # TODO Maybe add special handling for soft clipping, which may be better
