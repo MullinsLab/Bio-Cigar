@@ -73,7 +73,7 @@ subtest 'Alignment (default)' => sub {
 subtest 'Alignment (reversed)' => sub {
     plan tests => 2;
 
-    # Check behaviour of reference position arg.
+    # Check behaviour of 'reversed' arg.
     my $reversed = 1;
     my ($query_aln, $ref_aln)
         = @{ $cigar->align($query_seq_rev, $ref_seq, $ref_start, $reversed) };
