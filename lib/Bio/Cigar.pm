@@ -72,7 +72,7 @@ The CIGAR operations are given in the following table, taken from the SAM v1
 spec:
 
     Op  Description
-    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     M   alignment match (can be a sequence match or mismatch)
     I   insertion to the reference
     D   deletion from the reference
@@ -186,11 +186,15 @@ Takes a query position and returns the operation at that position.  Simply
 a shortcut for calling L</qpos_to_rpos> in list context and discarding the
 first return value.
 
-=head2 align
+=head2 align($query, $reference, $start_pos=1, $reversed=0)
 
 Takes a query sequence and a reference sequence, and aligns them using gap
-characters (C<->) according to the CIGAR string. Returns an array ref storing
-the aligned sequences in order [query, ref].
+characters (C<->) according to the CIGAR string. Optionally, the leftmost
+reference position (origin 1) can be passed, i.e. the query is aligned
+starting at that position. When C<$reversed> is given a true value, the
+reverse complement of the passed query sequence is used to generate the
+alignment. Returns an array ref storing the aligned sequences in order [query,
+ref].
 
 =cut
 
@@ -304,32 +308,40 @@ sub op_at_qpos {
     return $type;
 }
 
-# Note: The match/mismatch operators (=/X) are currently not verified to be
-# correct for the given input sequences.
 sub align {
-    my ($self, $query, $ref) = @_;
+    my ($self, $query, $ref, $ref_start, $reversed) = @_;
+    $ref_start //= 1;                       # default to first posiiton
 
-    ### Sanity check of input lengths.
-    # Of query ...
+    ### Sanity checks
+    # Note: The match/mismatch operators (=/X) are currently not verified to
+    # be correct for the given input sequences.
+
+    # Reference start position
+    croak "Reference start position must be positive, but $ref_start given"
+        unless $ref_start > 0;
+
+    # Query length
     my $query_len = $self->query_length;
     croak "Query was expected to have length $query_len, but has length ",
           length($query), " instead"
         unless $query_len == length($query);
 
-    # # ... and reference. Note: The reference length will likely not match
-    # # because it is often longer than the query and the CIGAR string doesn't
-    # # account for that. The best matching thing would be N, but it seems to
-    # be mainly used for introns.
-    # my $ref_len = $self->reference_length;
-    # carp "Reference was expected to have length $ref_len, but has length ",
-    #      length($query), " instead"
-    #     unless $ref_len == length($ref);
-
-    ### Iterate CIGAR ops and generate alignment chunks.
-    # TODO Maybe add special handling for soft clipping, which may be better
-    # represented by spaces.
+    ### Variables
     my (@query_aln, @ref_aln);          # stores chunks of aligned sequences
     my ($query_pos, $ref_pos) = (0, 0); # current position in sequences
+
+    ### Handle optional arguments.
+    # Handle reference start position.
+    $ref_pos += $ref_start - 1;         # convert 1-based start to 0-based pos
+    push @query_aln, ' ' x $ref_pos;    # start at correct position
+    push @ref_aln, substr $ref, 0, $ref_pos;
+
+    # Handle reversed query matches.
+    if ($reversed) {
+        $query = reverse $query =~ tr/ATGCU/TACGA/r;    # reverse complement
+    }
+
+    ### Iterate CIGAR ops and generate alignment chunks.
     foreach my $op (@{$self->ops}) {
         my ($op_len, $op_type) = @$op;
         my ($consumes_query, $consumes_ref) = @{ $op_consumes{$op_type} };
@@ -341,7 +353,9 @@ sub align {
             $query_pos += $op_len;
 
             unless ($consumes_ref) {
-                push @ref_aln, '-' x $op_len;
+                # Use spaces for soft clips, and dashes for indels etc.
+                my $gap_char = $op_type eq 'S' ? ' ' : '-';
+                push @ref_aln, $gap_char x $op_len;
             }
         }
         if ($consumes_ref) {

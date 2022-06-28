@@ -2,13 +2,16 @@
 
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 5;
 use Bio::Cigar;
 use Test::Exception;
 
-my $query_seq = 'ATGCGGAAAATCGGC';
-my   $ref_seq = 'GGCGGGATGCAAA';
-my $cigar_string = '4S2=4IX3D4M3N2P10H';
+# Test data
+my $query_seq     = 'GGAAAATCGGCATGC';
+my $query_seq_rev = 'GCAUGCCGATTTTCC';      # reverse complement of query
+my   $ref_seq     = 'CCCCGGCGGGATGCAAA';
+my $ref_start     = 5;                      # first matched position of ref
+my $cigar_string  = '2=4IX3D4M3N2P4S10H';
 my $cigar;
 
 # Test align method availablility.
@@ -22,38 +25,64 @@ subtest 'Callable' => sub {
 
 # Test sanity checks.
 subtest 'Sanity checks' => sub {
-    # plan tests => 2;
+    plan tests => 3;
 
     my $wrong_query = 'ATGC';
-    # my $wrong_ref   = 'CGTA';
-
-    # throws_ok { $cigar->align($query_seq, $wrong_ref) }
-    #           qr/Reference was expected to have length/;
     throws_ok { $cigar->align($wrong_query, $ref_seq) }
               qr/Query was expected to have length/;
-    lives_ok  { $cigar->align($query_seq, $ref_seq) }
+    throws_ok { $cigar->align($wrong_query, $ref_seq, 0) }
+              qr/Reference start position must be positive/;
+    lives_ok  { $cigar->align($query_seq, $ref_seq, $ref_start) }
               'correct input lives';
 };
 
-# Test correctness of alignments.
-subtest 'Alignment' => sub {
+### Test correctness of alignments.
+subtest 'Alignment (start pos arg) ' => sub {
     plan tests => 7;
 
     # Align sequences.
-    my $aln = $cigar->align($query_seq, $ref_seq);
+    my $aln = $cigar->align($query_seq, $ref_seq, $ref_start);
     isa_ok $aln, ref [];                # is an array ref
-    cmp_ok scalar(@$aln), '==', 2;      # we have two aligned sequences
+    cmp_ok scalar(@$aln), '==', 2, 'count aligned sequences';
     my ($query_aln, $ref_aln) = @$aln;
 
-    # Verify results.
+    # Check sequence length.
     is $query_aln =~ s/[^ATGCU]//gr, $query_seq, 'removing gaps yields query';
     is   $ref_aln =~ s/[^ATGCU]//gr,   $ref_seq, 'removing gaps yields reference';
     cmp_ok length $query_aln, '==', length $ref_aln,
-        'aligned sequences have equal length';
+           'aligned sequences have equal length';
 
-    is $query_aln, 'ATGCGGAAAAT---CGGC---', 'query correctly aligned';
-    is   $ref_aln, '----GG----CGGGATGCAAA', 'reference correctly aligned';
+    # Verify aligment.
+    is $query_aln, '    GGAAAAT---CGGC---ATGC', 'query correctly aligned';
+    is   $ref_aln, 'CCCCGG----CGGGATGCAAA    ', 'reference correctly aligned';
 };
+
+subtest 'Alignment (default)' => sub {
+    plan tests => 2;
+
+    # Truncate reference sequence before alignment start position.
+    my $short_ref_seq = substr $ref_seq, ($ref_start-1);
+
+    # Check behaviour of reference position arg.
+    my ($query_short_aln, $ref_short_aln)
+        = @{ $cigar->align($query_seq, $short_ref_seq) };
+    is $query_short_aln, 'GGAAAAT---CGGC---ATGC', 'short aln: query correctly aligned';
+    is   $ref_short_aln, 'GG----CGGGATGCAAA    ', 'short aln: reference correctly aligned';
+};
+
+subtest 'Alignment (reversed)' => sub {
+    plan tests => 2;
+
+    # Check behaviour of reference position arg.
+    my $reversed = 1;
+    my ($query_aln, $ref_aln)
+        = @{ $cigar->align($query_seq_rev, $ref_seq, $ref_start, $reversed) };
+    is $query_aln, '    GGAAAAT---CGGC---ATGC', 'reversed aln: query correctly aligned';
+    is   $ref_aln, 'CCCCGG----CGGGATGCAAA    ', 'reversed aln: reference correctly aligned';
+};
+
+
+
 
 
 # EOF
