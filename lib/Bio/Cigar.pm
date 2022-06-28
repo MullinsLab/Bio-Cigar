@@ -21,6 +21,11 @@ Bio::Cigar - Parse CIGAR strings and translate coordinates to/from reference/que
     my ($qpos, $op) = $cigar->rpos_to_qpos(3);
     say "Alignment operation at reference position 3 is $op";
 
+    my $query = "GCAAATGC";
+    my $ref   = "AAAAGCAAATGC";
+    my $aln   = $cigar->align($query, $ref, 5);  # align query to pos 5 of ref
+    say foreach @$aln;
+
 =head1 DESCRIPTION
 
 Bio::Cigar is a small library to parse CIGAR strings ("Compact Idiosyncratic
