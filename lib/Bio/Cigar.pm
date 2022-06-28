@@ -77,7 +77,7 @@ The CIGAR operations are given in the following table, taken from the SAM v1
 spec:
 
     Op  Description
-    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     M   alignment match (can be a sequence match or mismatch)
     I   insertion to the reference
     D   deletion from the reference
